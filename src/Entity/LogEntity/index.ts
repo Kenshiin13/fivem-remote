@@ -8,36 +8,80 @@ export enum LogLevel {
 }
 
 export class LogEntity implements LogEntityInterface {
-    public timestamp: Date;
-    public level: LogLevel;
-    public message: string;
-    public context?: string;
-    public stack?: string;
-    public metadata?: Record<string, unknown>;
+    private _timestamp: Date;
+    private _level: LogLevel;
+    private _message: string;
+    private _context?: string;
+    private _stack?: string;
+    private _metadata?: Record<string, unknown>;
 
     constructor(options: LogEntityOptions) {
-        this.timestamp = new Date();
-        this.level = options.level;
-        this.message = options.message;
-        this.context = options.context;
-        this.stack = options.error?.stack;
-        this.metadata = options.metadata;
+        this._timestamp = new Date();
+        this._level = options.level;
+        this._message = options.message;
+        this._context = options.context;
+        this._stack = options.error?.stack;
+        this._metadata = options.metadata;
+    }
+
+    get timestamp(): Date {
+        return this._timestamp;
+    }
+
+    get level(): LogLevel {
+        return this._level;
+    }
+
+    get message(): string {
+        return this._message;
+    }
+
+    get context(): string | undefined {
+        return this._context;
+    }
+
+    get stack(): string | undefined {
+        return this._stack;
+    }
+
+    get metadata(): Record<string, unknown> | undefined {
+        return this._metadata;
+    }
+
+    set level(level: LogLevel) {
+        this._level = level;
+    }
+
+    set message(message: string) {
+        this._message = message;
+    }
+
+    set context(context: string | undefined) {
+        this._context = context;
+    }
+
+    set stack(stack: string | undefined) {
+        this._stack = stack;
+    }
+
+    set metadata(metadata: Record<string, unknown> | undefined) {
+        this._metadata = metadata;
     }
 
     toJSON() {
         return {
-            timestamp: this.timestamp.toISOString(),
-            level: this.level,
-            message: this.message,
-            context: this.context,
-            stack: this.stack,
-            metadata: this.metadata,
+            timestamp: this._timestamp.toISOString(),
+            level: this._level,
+            message: this._message,
+            context: this._context,
+            stack: this._stack,
+            metadata: this._metadata,
         };
     }
 
     toString(): string {
-        return `[${this.timestamp.toISOString()}] [${this.level}]${this.context ? ` [${this.context}]` : ''} ${this.message}${
-            this.stack ? `\n${this.stack}` : ''
+        return `[${this._timestamp.toISOString()}] [${this._level}]${this._context ? ` [${this._context}]` : ''} ${this._message}${
+            this._stack ? `\n${this._stack}` : ''
         }`;
     }
 }
