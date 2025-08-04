@@ -2,6 +2,8 @@ import { Client, DiscordjsError, DiscordjsErrorCodes, GatewayIntentBits, Interac
 import { DiscordServiceError, DiscordServiceErrorCode } from '../../Error/DiscordServiceError';
 import { DiscordServiceInterface } from './Interface/DiscordServiceInterface';
 import { commands, refreshCommands } from './Command';
+import { LogEntity, LogLevel } from '../../Entity/LogEntity';
+import LogRepository from '../../Repository/LogRepository';
 
 class DiscordService implements DiscordServiceInterface {
     private readonly _client: Client;
@@ -51,12 +53,18 @@ class DiscordService implements DiscordServiceInterface {
         try {
             await command.execute(interaction);
         } catch (error) {
-            console.error(`Error executing command ${interaction.commandName}:`, error);
-            if (interaction.replied || interaction.deferred) {
-                await interaction.followUp({ content: 'There was an error executing this command.', ephemeral: true });
-            } else {
-                await interaction.reply({ content: 'There was an error executing this command.', ephemeral: true });
-            }
+            const logEntity = new LogEntity({
+                level: LogLevel.ERROR,
+                message: `Error executing command ${interaction.commandName}`,
+                context: 'DiscordService',
+                error: error instanceof Error ? error : new Error(String(error)),
+                metadata: {
+                    commandName: interaction.commandName,
+                    userId: interaction.user.id,
+                },
+            });
+
+            LogRepository.save(logEntity);
         }
     }
 

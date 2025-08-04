@@ -31,17 +31,9 @@ const infoCommand: DiscordCommandInterface = {
 
             await interaction.editReply({ embeds: [embed] });
         } catch (error: unknown) {
-            const logEntity = new LogEntity({
-                level: LogLevel.ERROR,
-                message: 'Failed to fetch server info',
-                context: 'DiscordService/Command/info',
-                error: error instanceof Error ? error : new Error(String(error)),
-                metadata: { interactionId: interaction.id, userId: interaction.user.id },
-            });
-
-            LogRepository.save(logEntity);
-
             await interaction.editReply('❌ Failed to fetch server info. The server might be offline or misconfigured.');
+
+            throw error; // Re-throw the error for logging
         }
     },
 };
