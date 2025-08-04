@@ -10,6 +10,9 @@ class FiveMService implements FivemServiceInterface {
         this.serverPort = process.env.FIVEM_SERVICE_SERVER_PORT || '';
     }
 
+    /**
+     * @throws {FiveMServiceError}
+     */
     public async getServerInfo(): Promise<FiveMServerInfoDTO> {
         const response = await fetch(`http://${this.serverIP}:${this.serverPort}/info.json`);
 
