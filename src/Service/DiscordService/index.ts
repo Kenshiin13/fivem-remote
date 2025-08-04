@@ -1,18 +1,25 @@
-import { Client, DiscordjsError, DiscordjsErrorCodes, GatewayIntentBits, Interaction } from 'discord.js';
+import { Client, DiscordjsError, DiscordjsErrorCodes, GatewayIntentBits, Interaction, Collection } from 'discord.js';
 import { DiscordServiceError, DiscordServiceErrorCode } from '../../Error/DiscordServiceError';
+import { DiscordCommandInterface } from './Interface/DiscordCommandInterface';
 import { DiscordServiceInterface } from './Interface/DiscordServiceInterface';
-import { commands, refreshCommands } from './Command';
 import { LogEntity, LogLevel } from '../../Entity/LogEntity';
 import LogRepository from '../../Repository/LogRepository';
+import fs from 'fs';
+import path from 'path';
 
 class DiscordService implements DiscordServiceInterface {
     private readonly _client: Client;
     private _initialized = false;
+    private _commands = new Collection<string, DiscordCommandInterface>();
 
     constructor() {
         this._client = new Client({
             intents: [GatewayIntentBits.Guilds],
         });
+    }
+
+    public get commands() {
+        return this._commands;
     }
 
     /**
@@ -41,7 +48,7 @@ class DiscordService implements DiscordServiceInterface {
     private async handleInteraction(interaction: Interaction): Promise<void> {
         if (!interaction.isChatInputCommand()) return;
 
-        const command = commands.get(interaction.commandName);
+        const command = this._commands.get(interaction.commandName);
         if (!command) {
             await interaction.reply({
                 content: 'Command not found.',
@@ -68,10 +75,9 @@ class DiscordService implements DiscordServiceInterface {
         }
     }
 
-    async getClient(): Promise<Client> {
+    public async getClient(): Promise<Client> {
         if (!this._initialized) {
             await this.login();
-            return this._client;
         }
         return this._client;
     }
@@ -80,18 +86,35 @@ class DiscordService implements DiscordServiceInterface {
      * @throws {DiscordServiceError}
      */
     public async refreshCommands(): Promise<void> {
-        const client = await this.getClient();
-        await refreshCommands();
+        this._commands.clear();
 
-        if (client.application === null) {
+        const commandsPath = path.resolve(__dirname, './Command');
+        const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.ts') || file.endsWith('.js'));
+
+        for (const file of commandFiles) {
+            const filePath = path.join(commandsPath, file);
+            const commandModule = await import(filePath);
+            const command: DiscordCommandInterface = commandModule.default ?? Object.values(commandModule)[0];
+
+            if (command && command.data && typeof command.execute === 'function') {
+                this._commands.set(command.data.name, command);
+            } else {
+                throw new DiscordServiceError(`Invalid command structure in ${filePath}`, DiscordServiceErrorCode.BAD_COMMAND);
+            }
+        }
+
+        const client = await this.getClient();
+
+        if (!client.application) {
             throw new DiscordServiceError('Discord application is not available.', DiscordServiceErrorCode.APPLICATION_NOT_FOUND);
         }
 
         const guild = client.guilds.cache.get(process.env.DISCORD_SERVICE_GUILD_ID || '');
-        if (guild === undefined) {
+        if (!guild) {
             throw new DiscordServiceError('Guild not found.', DiscordServiceErrorCode.GUILD_NOT_FOUND);
         }
-        await guild.commands.set(commands.map((cmd) => cmd.data));
+
+        await guild.commands.set(this._commands.map((cmd) => cmd.data));
     }
 }
 
