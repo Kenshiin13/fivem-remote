@@ -4,11 +4,11 @@ import { DiscordServiceInterface } from './Interface/DiscordServiceInterface';
 import { commands, refreshCommands } from './Command';
 
 class DiscordService implements DiscordServiceInterface {
-    private readonly client: Client;
-    private initialized = false;
+    private readonly _client: Client;
+    private _initialized = false;
 
     constructor() {
-        this.client = new Client({
+        this._client = new Client({
             intents: [GatewayIntentBits.Guilds],
         });
     }
@@ -17,14 +17,14 @@ class DiscordService implements DiscordServiceInterface {
      * @throws {DiscordServiceError}
      */
     private async login(): Promise<void> {
-        if (this.initialized) return;
+        if (this._initialized) return;
 
         try {
-            await this.client.login(process.env.DISCORD_SERVICE_TOKEN);
-            this.initialized = true;
+            await this._client.login(process.env.DISCORD_SERVICE_TOKEN);
+            this._initialized = true;
 
             await this.refreshCommands();
-            this.client.on('interactionCreate', this.handleInteraction.bind(this));
+            this._client.on('interactionCreate', this.handleInteraction.bind(this));
         } catch (error: unknown) {
             if (error instanceof DiscordServiceError) {
                 throw error;
@@ -61,11 +61,11 @@ class DiscordService implements DiscordServiceInterface {
     }
 
     async getClient(): Promise<Client> {
-        if (!this.initialized) {
+        if (!this._initialized) {
             await this.login();
-            return this.client;
+            return this._client;
         }
-        return this.client;
+        return this._client;
     }
 
     /**
