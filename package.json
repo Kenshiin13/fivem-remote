@@ -1,0 +1,30 @@
+{
+  "name": "fivem-remote",
+  "version": "0.0.1",
+  "description": "fivem-remote is a powerful Discord bot that enables remote management of your FiveM server directly through Discord. Easily deploy branches, run commands, and perform administrative tasks — all without touching your server console.",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "npx ts-node src/main.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kenshiin13/fivem-remote.git"
+  },
+  "author": "Kenshin13",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/Kenshiin13/fivem-remote/issues"
+  },
+  "homepage": "https://github.com/Kenshiin13/fivem-remote#readme",
+  "dependencies": {
+    "discord.js": "^14.21.0",
+    "dotenv": "^17.2.1",
+    "mysql2": "^3.14.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
