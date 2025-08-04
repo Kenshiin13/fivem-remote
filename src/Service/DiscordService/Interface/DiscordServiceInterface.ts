@@ -1,4 +1,3 @@
-// IDiscordService.ts
 import { Client } from 'discord.js';
 
 export interface DiscordServiceInterface {

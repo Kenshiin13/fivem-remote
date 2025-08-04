@@ -1,3 +1,5 @@
+import { LogEntityInterface, LogEntityOptions } from './Interface/LogEntityInterface';
+
 export enum LogLevel {
     INFO = 'INFO',
     WARN = 'WARN',
@@ -5,7 +7,7 @@ export enum LogLevel {
     DEBUG = 'DEBUG',
 }
 
-export class LogEntity {
+export class LogEntity implements LogEntityInterface {
     public timestamp: Date;
     public level: LogLevel;
     public message: string;
@@ -13,7 +15,7 @@ export class LogEntity {
     public stack?: string;
     public metadata?: Record<string, unknown>;
 
-    constructor(options: { level: LogLevel; message: string; context?: string; error?: Error; metadata?: Record<string, unknown> }) {
+    constructor(options: LogEntityOptions) {
         this.timestamp = new Date();
         this.level = options.level;
         this.message = options.message;
